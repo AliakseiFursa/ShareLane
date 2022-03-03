@@ -128,10 +128,11 @@ public class SignUpTest {
 //        driver.get("https://sharelane.com/cgi-bin/shopping_cart.py");
 //        driver.findElement(By.partialLinkText("Shopping Cart")).click();
         driver.findElement(By.cssSelector("[href='./shopping_cart.py']")).click();
-        driver.findElement(By.name("q")).sendKeys("00");
+        driver.findElement(By.name("q")).clear();
+        driver.findElement(By.name("q")).sendKeys("100");
         driver.findElement(By.cssSelector("[value=Update]")).click();
         String sum = driver.findElement(By.xpath("//tr[2]//td[7]")).getText();
-        assertEquals(sum, "960", "Total price doesn't match expected");
+        assertEquals(sum, "960.00", "Total price doesn't match expected");
     }
     @AfterMethod(alwaysRun = true)
     public void tearDown(){
