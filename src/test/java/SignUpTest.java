@@ -6,8 +6,9 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertTrue;
+import java.util.concurrent.TimeUnit;
+
+import static org.testng.Assert.*;
 
 public class SignUpTest {
 
@@ -17,6 +18,7 @@ public class SignUpTest {
     public void setUp(){
         System.setProperty("webdriver.chrome.driver", "src/test/resources/chromedriver.exe");
         driver = new ChromeDriver();
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
     }
     @Test
     public void zipCode1(){
@@ -85,6 +87,52 @@ public class SignUpTest {
         driver.findElement(By.cssSelector("[value=Register]")).click();
         int size = driver.findElements(By.cssSelector("[class=confirmation_message]")).size();
         assertNotEquals(size, 0, "Confirmation message is not displayed");
+    }
+    @Test
+    public void discountSystemTest(){
+        /*
+        1. Открыть браузер
+        2. Перейти по ссылке https://www.sharelane.com/cgi-bin/register.py?page=1&zip_code=12325
+        3. В поле First Name вводим имя, например Aliaksei
+        4. В поле Last Name вводим фамилию, например Fursa
+        5. В поле Email вводим адрес электронной почты, например af89@gmail.com
+        6. В поле Password вводим пароль, например pswrd1208
+        7. В поле Confirm Password вводим пароль, например pswrd1208
+        8. Нажать кнопку Register
+        9. Сохраняем логин и пароль
+        10. Логинимся с данными из п.9 по ссылке https://www.sharelane.com/cgi-bin/main.py
+        11. Через поиск находим книгу White Fang
+        12. Добавляем книгу в корзину
+        13. Переходим в корзину по гиперссылке Shopping Cart
+        14. В поле количество указать 100 книг
+        15. Нажать кнопку Update
+        16. Проверить что финальная стоимость равна 960
+         */
+        driver.get("https://www.sharelane.com/cgi-bin/register.py?page=1&zip_code=12325");
+        driver.findElement(By.name("first_name")).sendKeys("Aliaksei");
+        driver.findElement(By.name("last_name")).sendKeys("Fursa");
+        driver.findElement(By.name("email")).sendKeys("af89@gmail.com");
+        driver.findElement(By.name("password1")).sendKeys("pswrd1208");
+        driver.findElement(By.name("password2")).sendKeys("pswrd1208");
+        driver.findElement(By.cssSelector("[value=Register]")).click();
+        String email = driver.findElement(By.xpath("//*[contains(text(), 'Email')]/..//b")).getText();
+        String password = driver.findElement(By.xpath("//*[contains(text(), 'Password')]/..//td[2]")).getText();
+        driver.get("https://www.sharelane.com/cgi-bin/main.py");
+        driver.findElement(By.name("email")).sendKeys(email);
+        driver.findElement(By.name("password")).sendKeys(password);
+        driver.findElement(By.cssSelector("[value=Login]")).click();
+        driver.findElement(By.name("keyword")).sendKeys("White Fang");
+        driver.findElement(By.cssSelector("[value=Search]")).click();
+//        driver.get("https://sharelane.com/cgi-bin/show_book.py?book_id=2");
+        driver.findElement(By.cssSelector("[href='./add_to_cart.py?book_id=2']")).click();
+//        driver.get("https://sharelane.com/cgi-bin/shopping_cart.py");
+//        driver.findElement(By.partialLinkText("Shopping Cart")).click();
+        driver.findElement(By.cssSelector("[href='./shopping_cart.py']")).click();
+        driver.findElement(By.name("q")).clear();
+        driver.findElement(By.name("q")).sendKeys("100");
+        driver.findElement(By.cssSelector("[value=Update]")).click();
+        String sum = driver.findElement(By.xpath("//tr[2]//td[7]")).getText();
+        assertEquals(sum, "960.00", "Total price doesn't match expected");
     }
     @AfterMethod(alwaysRun = true)
     public void tearDown(){
